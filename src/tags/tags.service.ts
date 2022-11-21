@@ -10,7 +10,9 @@ export class TagsService {
     private readonly coffeeRepository: Repository<Tags>,
     private readonly connection: Connection,
   ) {}
-  getAll(): Promise<Tags[]> {
-    return this.coffeeRepository.find();
+
+  async getAll(): Promise<{ tags: string[] }> {
+    const tags = await this.coffeeRepository.find();
+    return { tags: tags.map((tag) => tag.name) };
   }
 }
