@@ -1,10 +1,9 @@
 import * as jwt from 'jsonwebtoken';
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import CreateUserDTO from './dto/CreateUserDTO';
 import { User } from './entity/user.entity';
-import { isErrored } from 'stream';
 import UserResponse from './type/userResponse.interface';
 
 @Injectable()
@@ -14,7 +13,20 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
+  async userExists(createUserDto: CreateUserDTO): Promise<boolean> {
+    const { email, username } = createUserDto;
+
+    const userByName = await this.usersRepository.findOne({ where: { username } });
+    if (userByName) return true;
+
+    const userByEmail = await this.usersRepository.findOne({ where: { email } });
+    if (userByEmail) return true;
+
+    return false;
+  }
+
   async createNewUser(createUserDto: CreateUserDTO): Promise<User> {
+    if(await this.userExists(createUserDto)) throw new HttpException('User alreaday exists !', HttpStatus.UNPROCESSABLE_ENTITY);    
     const newUser = new User();    
     Object.assign(newUser, createUserDto);    
     return this.usersRepository.save(newUser);
