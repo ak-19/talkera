@@ -26,7 +26,7 @@ export class UsersService {
   }
 
   async createNewUser(createUserDto: CreateUserDTO): Promise<User> {
-    if(await this.userExists(createUserDto)) throw new HttpException('User alreaday exists !', HttpStatus.UNPROCESSABLE_ENTITY);    
+    if(await this.userExists(createUserDto)) throw new HttpException('Email or username alreaday exists !', HttpStatus.UNPROCESSABLE_ENTITY);    
     const newUser = new User();    
     Object.assign(newUser, createUserDto);    
     return this.usersRepository.save(newUser);
