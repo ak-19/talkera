@@ -13,7 +13,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async verifyAndGetUser(loginteUserDto: LoginUserDTO): Promise<User> {
     const { email, password } = loginteUserDto;
@@ -35,6 +35,10 @@ export class UsersService {
     delete user.password;
 
     return user;
+  }
+
+  async findById(id: number): Promise<User> {
+    return this.usersRepository.findOneBy({ id });
   }
 
   async userExists(createUserDto: CreateUserDTO): Promise<boolean> {
