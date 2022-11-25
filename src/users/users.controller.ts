@@ -7,9 +7,10 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { User as UserDecorator } from './decorator/user.decorator';
 import CreateUserDTO from './dto/createUser.dto';
 import LoginUserDTO from './dto/loginUser.dto';
+import { User } from './entity/user.entity';
 import UserRequest from './type/userRequest.interface';
 import UserResponse from './type/userResponse.interface';
 import { UsersService } from './users.service';
@@ -45,7 +46,7 @@ export class UsersController {
   }
 
   @Get()
-  async getUser(@Req() request: UserRequest): Promise<UserResponse> {
-    return this.usersService.buildUserResponse(request.user);
+  async getUser(@UserDecorator() user: User): Promise<UserResponse> {
+    return this.usersService.buildUserResponse(user);
   }
 }
