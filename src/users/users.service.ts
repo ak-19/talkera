@@ -7,6 +7,7 @@ import CreateUserDTO from './dto/createUser.dto';
 import { User } from './entity/user.entity';
 import UserResponse from './type/userResponse.interface';
 import LoginUserDTO from './dto/loginUser.dto';
+import UpdateUserDTO from './dto/updateUser.dto';
 
 @Injectable()
 export class UsersService {
@@ -86,5 +87,14 @@ export class UsersService {
         token: this.generateJwt(user),
       },
     };
+  }
+
+  async updateUser(id: number, updateUserDto: UpdateUserDTO): Promise<User> {
+    const user = await this.findById(id);
+    Object.assign(user, updateUserDto);
+
+    await this.usersRepository.save(user);
+
+    return user;
   }
 }
