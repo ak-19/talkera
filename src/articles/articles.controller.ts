@@ -1,4 +1,8 @@
-import { Body, Controller, Get, Inject, Param, Post, Put, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Put, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { userInfo } from 'os';
+import { User as UserDecorator } from 'src/users/decorator/user.decorator';
+import { User } from 'src/users/entity/user.entity';
+import { AuthGuard } from 'src/users/guards/auth.guard';
 import { ArticlesService } from './articles.service';
 import { ArticleDTO } from './dto/article.dto';
 
@@ -8,12 +12,12 @@ export class ArticlesController {
     constructor(private readonly articlesService: ArticlesService) { }
 
     @Post()
-    @UsePipes(new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true
-    }))
-    async create(@Body('article') body: ArticleDTO) {
-        console.log(body);
+    @UseGuards(AuthGuard)
+    // @UsePipes(new ValidationPipe({
+    //     whitelist: true,
+    //     forbidNonWhitelisted: true
+    // }))
+    async create(@UserDecorator() user: User, @Body('article') body: ArticleDTO) {
         return 'creating article...'
     }
 
