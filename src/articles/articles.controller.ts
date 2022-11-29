@@ -6,6 +6,7 @@ import { AuthGuard } from 'src/users/guards/auth.guard';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDTO } from './dto/createArticle.dto';
 import { Article } from './entity/article.entity';
+import { ArticleResponse } from './type/articleResponse.interface';
 
 @Controller('api/articles')
 export class ArticlesController {
@@ -14,8 +15,9 @@ export class ArticlesController {
     @Post()
     @UseGuards(AuthGuard)
     @UsePipes(new ValidationPipe())
-    async create(@UserDecorator() currentUser: User, @Body('article') createArticleDto: CreateArticleDTO): Promise<Article> {
-        return this.articlesService.createArticle(currentUser, createArticleDto)
+    async create(@UserDecorator() currentUser: User, @Body('article') createArticleDto: CreateArticleDTO): Promise<ArticleResponse> {
+        const article = await this.articlesService.createArticle(currentUser, createArticleDto)
+        return this.articlesService.buildArticleResponse(article);
     }
 
     @Get()
