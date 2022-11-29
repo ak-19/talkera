@@ -4,25 +4,22 @@ import { User as UserDecorator } from 'src/users/decorator/user.decorator';
 import { User } from 'src/users/entity/user.entity';
 import { AuthGuard } from 'src/users/guards/auth.guard';
 import { ArticlesService } from './articles.service';
-import { ArticleDTO } from './dto/article.dto';
+import { CreateArticleDTO } from './dto/createArticle.dto';
+import { Article } from './entity/article.entity';
 
 @Controller('api/articles')
 export class ArticlesController {
-
     constructor(private readonly articlesService: ArticlesService) { }
 
     @Post()
     @UseGuards(AuthGuard)
-    // @UsePipes(new ValidationPipe({
-    //     whitelist: true,
-    //     forbidNonWhitelisted: true
-    // }))
-    async create(@UserDecorator() user: User, @Body('article') body: ArticleDTO) {
-        return 'creating article...'
+    @UsePipes(new ValidationPipe())
+    async create(@UserDecorator() currentUser: User, @Body('article') createArticleDto: CreateArticleDTO): Promise<Article> {
+        return this.articlesService.createArticle(currentUser, createArticleDto)
     }
 
     @Get()
-    async getAll(): Promise<string[]> {
+    async getAll(): Promise<Article[]> {
         return this.articlesService.getAll();
     }
 
