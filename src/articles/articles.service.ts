@@ -27,8 +27,12 @@ export class ArticlesService {
         return this.articleRepository.save(article);;
     }
 
-    getOne(id: number) {
-        return `This is one id=${id}, you asked for`
+    getOne(id: number): Promise<Article> {
+        return this.articleRepository.findOneBy({ id });
+    }
+
+    getOneBySlug(slug: string): Promise<Article> {
+        return this.articleRepository.findOneBy({ slug });
     }
 
     buildArticleResponse(article: Article): ArticleResponse {

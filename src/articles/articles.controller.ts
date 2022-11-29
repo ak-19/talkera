@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Post, Put, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Inject, Param, Post, Put, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { userInfo } from 'os';
 import { User as UserDecorator } from 'src/users/decorator/user.decorator';
 import { User } from 'src/users/entity/user.entity';
@@ -25,10 +25,21 @@ export class ArticlesController {
         return this.articlesService.getAll();
     }
 
+    @Get('slug/:slug')
+    async getBySlug(@Param('slug') slug: string): Promise<ArticleResponse> {
+        const article = await this.articlesService.getOneBySlug(slug);
+        if (!article) throw new HttpException('Article with that slug not found', HttpStatus.NOT_FOUND);
+        return this.articlesService.buildArticleResponse(article);
+    }
+
 
     @Get(':id')
-    async getOne(@Param('id') id: number): Promise<string> {
-        return this.articlesService.getOne(id);
+    async getOne(@Param('id') id: number): Promise<ArticleResponse> {
+        const article = await this.articlesService.getOne(id);
+
+        if (!article) throw new HttpException('Article with that if not found', HttpStatus.NOT_FOUND);
+
+        return this.articlesService.buildArticleResponse(article);
     }
 
     @Put()
