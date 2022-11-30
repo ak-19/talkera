@@ -4,6 +4,7 @@ import slugify from 'slugify';
 import { User } from 'src/users/entity/user.entity';
 import { DeleteResult, Repository } from 'typeorm';
 import { CreateArticleDTO } from './dto/createArticle.dto';
+import { UpdateArticleDTO } from './dto/updateArticle.dto';
 import { Article } from './entity/article.entity';
 import { ArticleResponse } from './type/articleResponse.interface';
 
@@ -48,5 +49,18 @@ export class ArticlesService {
         if (currentUserId !== article.author.id) throw new HttpException('You are not allowed to delete this article', HttpStatus.FORBIDDEN);
 
         return this.articleRepository.delete({ slug })
+    }
+
+    async updateBySlug(currentUserId: number, slug: string, updateArticleDTO: UpdateArticleDTO) {
+        const article = await this.articleRepository.findOneBy({ slug });
+
+        if (!article) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
+        if (article.author.id != currentUserId) throw new HttpException('Not allowed to update article', HttpStatus.NOT_FOUND);
+
+        Object.assign(article, updateArticleDTO);
+
+        await this.articleRepository.save(article)
+
+        return article;
     }
 }

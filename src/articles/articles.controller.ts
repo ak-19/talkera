@@ -6,6 +6,7 @@ import { AuthGuard } from 'src/users/guards/auth.guard';
 import { DeleteResult } from 'typeorm';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDTO } from './dto/createArticle.dto';
+import { UpdateArticleDTO } from './dto/updateArticle.dto';
 import { Article } from './entity/article.entity';
 import { ArticleResponse } from './type/articleResponse.interface';
 
@@ -43,14 +44,16 @@ export class ArticlesController {
         return this.articlesService.buildArticleResponse(article);
     }
 
-    @Put()
-    async update() {
-        return 'updating all articles...'
-    }
-
     @Delete(':slug')
     @UseGuards(AuthGuard)
     async deleteBySlug(@UserDecorator('id') currentUserId: number, @Param('slug') slug: string): Promise<DeleteResult> {
         return await this.articlesService.deleteBySlug(currentUserId, slug);
+    }
+
+    @Put(':slug')
+    @UseGuards(AuthGuard)
+    async updateArticle(@UserDecorator('id') currentUserId: number, @Param('slug') slug: string, @Body('article') updateArticleDTO: UpdateArticleDTO): Promise<ArticleResponse> {
+        const article = await this.articlesService.updateBySlug(currentUserId, slug, updateArticleDTO);
+        return this.articlesService.buildArticleResponse(article);
     }
 }
