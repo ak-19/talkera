@@ -1,8 +1,9 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Inject, Param, Post, Put, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Inject, Param, Post, Put, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { userInfo } from 'os';
 import { User as UserDecorator } from 'src/users/decorator/user.decorator';
 import { User } from 'src/users/entity/user.entity';
 import { AuthGuard } from 'src/users/guards/auth.guard';
+import { DeleteResult } from 'typeorm';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDTO } from './dto/createArticle.dto';
 import { Article } from './entity/article.entity';
@@ -45,5 +46,11 @@ export class ArticlesController {
     @Put()
     async update() {
         return 'updating all articles...'
+    }
+
+    @Delete(':slug')
+    @UseGuards(AuthGuard)
+    async deleteBySlug(@UserDecorator('id') currentUserId: number, @Param('slug') slug: string): Promise<DeleteResult> {
+        return await this.articlesService.deleteBySlug(currentUserId, slug);
     }
 }
