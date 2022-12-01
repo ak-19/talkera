@@ -7,13 +7,37 @@ import { CreateArticleDTO } from './dto/createArticle.dto';
 import { UpdateArticleDTO } from './dto/updateArticle.dto';
 import { Article } from './entity/article.entity';
 import { ArticleResponse } from './type/articleResponse.interface';
+import { ArticlesResponse } from './type/articlesResponse.interface';
 
 @Injectable()
 export class ArticlesService {
-    constructor(@InjectRepository(Article) private readonly articleRepository: Repository<Article>) { }
+    constructor(
+        @InjectRepository(Article) private readonly articleRepository: Repository<Article>,
+        @InjectRepository(User) private readonly userRepository: Repository<User>
+    ) { }
 
-    getAll(): Promise<Article[]> {
-        return this.articleRepository.find();
+    async getAll(currentUserId: number, queryParameters: any): Promise<Promise<ArticlesResponse>> {
+        const { limit, offset, tag, author } = queryParameters;
+        const queryBuilder = this.articleRepository
+            .createQueryBuilder('articles')
+            .leftJoinAndSelect('articles.author', 'author')
+            .orderBy('articles.creatdAt', 'DESC')
+
+        if (author) {
+            const authorUser = await this.userRepository.findOneBy({ username: author })
+            queryBuilder.andWhere('articles.author = :id', { id: authorUser.id })
+        }
+        if (tag) queryBuilder.andWhere('articles.tagList LIKE :tag', { tag: `%${tag}%` })
+        if (offset) queryBuilder.offset(offset - 1);
+        if (limit) queryBuilder.limit(limit);
+
+        const articles = await queryBuilder.getMany();
+        const articlesCount = await queryBuilder.getCount();
+
+        return {
+            articles,
+            articlesCount
+        };
     }
 
     private generateSlug = (prefix: string) => slugify(prefix, { lower: true }) + '-' + (Math.random() * Math.pow(36, 6) | 0).toString(36)

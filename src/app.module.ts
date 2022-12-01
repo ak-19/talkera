@@ -12,6 +12,7 @@ import { ArticlesModule } from './articles/articles.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: () => ({
+        name: 'talkera',
         type: 'postgres',
         host: process.env.DATABASE_HOST,
         port: +process.env.DATABASE_PORT,
