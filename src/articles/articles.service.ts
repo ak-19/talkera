@@ -87,4 +87,32 @@ export class ArticlesService {
 
         return article;
     }
+
+    async addArticleToFavorites(currentUserId: number, slug: string): Promise<Article> {
+        const article = await this.articleRepository.findOneBy({ slug });
+        if (!article) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
+
+        const user = await this.userRepository.findOne({ where: { id: currentUserId }, relations: ['favorites'] });
+
+        if (user.favorites.findIndex(a => a.id === article.id) === -1) {
+            user.favorites.push(article);
+            article.favoritesCount++;
+            await this.userRepository.save(user)
+            await this.articleRepository.save(article)
+        } else {
+            console.log('Article already favorited by this user');
+        }
+
+        return article
+    }
+
+    async removeArticleFromFavorites(currentUserId: number, slug: string): Promise<Article> {
+        const article = await this.articleRepository.findOneBy({ slug });
+        if (!article) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
+
+        console.log('un liking it -- TODO');
+
+        return article
+    }
 }
+

@@ -47,4 +47,20 @@ export class ArticlesController {
         const article = await this.articlesService.updateBySlug(currentUserId, slug, updateArticleDTO);
         return this.articlesService.buildArticleResponse(article);
     }
+
+
+    @Post(':slug/favorite')
+    @UseGuards(AuthGuard)
+    async favoriteArticle(@UserDecorator('id') currentUserId: number, @Param('slug') slug: string): Promise<ArticleResponse> {
+        const article = await this.articlesService.addArticleToFavorites(currentUserId, slug);
+        return this.articlesService.buildArticleResponse(article);
+    }
+
+
+    @Delete(':slug/favorite')
+    @UseGuards(AuthGuard)
+    async unfavoriteArticle(@UserDecorator('id') currentUserId: number, @Param('slug') slug: string): Promise<ArticleResponse> {
+        const article = await this.articlesService.removeArticleFromFavorites(currentUserId, slug);
+        return this.articlesService.buildArticleResponse(article);
+    }
 }
