@@ -1,3 +1,3 @@
-import { User } from "src/users/entity/user.entity";
+import { UserType } from "src/users/type/user.type";
 
-export type Profile = Omit<User, 'email' | 'hashPassword' | 'articles' | 'favorites'>
+export type Profile = UserType & { following: boolean };
