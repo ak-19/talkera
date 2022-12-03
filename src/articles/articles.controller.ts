@@ -48,14 +48,12 @@ export class ArticlesController {
         return this.articlesService.buildArticleResponse(article);
     }
 
-
     @Post(':slug/favorite')
     @UseGuards(AuthGuard)
     async favoriteArticle(@UserDecorator('id') currentUserId: number, @Param('slug') slug: string): Promise<ArticleResponse> {
         const article = await this.articlesService.addArticleToFavorites(currentUserId, slug);
         return this.articlesService.buildArticleResponse(article);
     }
-
 
     @Delete(':slug/favorite')
     @UseGuards(AuthGuard)
