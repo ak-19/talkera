@@ -7,7 +7,6 @@ import { DeleteResult } from 'typeorm';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDTO } from './dto/createArticle.dto';
 import { UpdateArticleDTO } from './dto/updateArticle.dto';
-import { Article } from './entity/article.entity';
 import { ArticleResponse } from './type/articleResponse.interface';
 import { ArticlesResponse } from './type/articlesResponse.interface';
 
