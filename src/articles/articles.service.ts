@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
 import { User } from 'src/users/entity/user.entity';
-import { DeleteResult, Repository } from 'typeorm';
+import { DeleteResult, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateArticleDTO } from './dto/createArticle.dto';
 import { UpdateArticleDTO } from './dto/updateArticle.dto';
 import { Article } from './entity/article.entity';
@@ -16,26 +16,61 @@ export class ArticlesService {
         @InjectRepository(User) private readonly userRepository: Repository<User>
     ) { }
 
-    async getAll(currentUserId: number, queryParameters: any): Promise<Promise<ArticlesResponse>> {
-        const { limit, offset, tag, author } = queryParameters;
+    private async trySetAuthorFilter(author: string, queryBuilder: SelectQueryBuilder<Article>): Promise<void> {
+        if (author) {
+            const authorUser = await this.userRepository.findOneBy({ username: author })
+            queryBuilder.andWhere('articles.author = :id', { id: authorUser.id })
+        }
+    }
+
+    private async trySetFavoritedFilter(favorited: string, queryBuilder: SelectQueryBuilder<Article>): Promise<void> {
+        if (favorited) {
+            const favoritedUser = await this.userRepository.findOne({ where: { username: favorited }, relations: ['favorites'] });
+            const ids = favoritedUser.favorites.map(article => article.id);
+            if (ids.length > 0) {
+                queryBuilder.andWhere('articles.id IN (:...ids)', { ids })
+            } else {
+                queryBuilder.andWhere('1=0')
+            }
+        }
+    }
+
+    private async articlesWithFavorites(currentUserId: number, articles: Article[]) {
+        let favoritedIds = [];
+
+        if (currentUserId) {
+            const currentUser = await this.userRepository.findOne({ where: { id: currentUserId }, relations: ['favorites'] })
+            favoritedIds = currentUser.favorites.map(a => a.id);
+        }
+
+        return articles.map(article => {
+            const favorited = favoritedIds.includes(article.id)
+            return { ...article, favorited };
+        })
+    }
+
+    async getAll(currentUserId: number, queryParameters: any): Promise<ArticlesResponse> {
+        const { limit, offset, tag, author, favorited } = queryParameters;
         const queryBuilder = this.articleRepository
             .createQueryBuilder('articles')
             .leftJoinAndSelect('articles.author', 'author')
             .orderBy('articles.creatdAt', 'DESC')
 
-        if (author) {
-            const authorUser = await this.userRepository.findOneBy({ username: author })
-            queryBuilder.andWhere('articles.author = :id', { id: authorUser.id })
-        }
+        await this.trySetAuthorFilter(author, queryBuilder);
+
+        await this.trySetFavoritedFilter(favorited, queryBuilder);
+
         if (tag) queryBuilder.andWhere('articles.tagList LIKE :tag', { tag: `%${tag}%` })
         if (offset) queryBuilder.offset(offset - 1);
         if (limit) queryBuilder.limit(limit);
 
         const articles = await queryBuilder.getMany();
+
         const articlesCount = await queryBuilder.getCount();
+        const articlesWithFavorited = await this.articlesWithFavorites(currentUserId, articles);
 
         return {
-            articles,
+            articles: articlesWithFavorited,
             articlesCount
         };
     }
