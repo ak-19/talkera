@@ -59,4 +59,23 @@ export class ProfileService {
             following: true
         }
     }
+
+    async unfollowProfile(currentUserId: number, username: string) {
+        const user = await this.userRepository.findOneBy({ username })
+
+        if (!user) throw new HttpException('The profile not found', HttpStatus.NOT_FOUND);
+
+        if (user.id === currentUserId) throw new HttpException('You can not unfollow you self', HttpStatus.BAD_REQUEST)
+
+        const following = await this.followRepository.findOne({ where: { followerId: currentUserId, followingId: user.id } });
+
+        if (!following) throw new HttpException('You are not following that profile', HttpStatus.BAD_REQUEST);
+
+        await this.followRepository.delete(following);
+
+        return {
+            ...user,
+            following: false
+        }
+    }
 }
