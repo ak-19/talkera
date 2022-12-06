@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
+import { Follow } from 'src/profile/entity/follow.entity';
 import { User } from 'src/users/entity/user.entity';
 import { DeleteResult, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateArticleDTO } from './dto/createArticle.dto';
@@ -13,7 +14,8 @@ import { ArticlesResponse } from './type/articlesResponse.interface';
 export class ArticlesService {
     constructor(
         @InjectRepository(Article) private readonly articleRepository: Repository<Article>,
-        @InjectRepository(User) private readonly userRepository: Repository<User>
+        @InjectRepository(User) private readonly userRepository: Repository<User>,
+        @InjectRepository(Follow) private readonly followRepository: Repository<Follow>
     ) { }
 
     private async trySetAuthorFilter(author: string, queryBuilder: SelectQueryBuilder<Article>): Promise<void> {
@@ -54,6 +56,40 @@ export class ArticlesService {
         const queryBuilder = this.articleRepository
             .createQueryBuilder('articles')
             .leftJoinAndSelect('articles.author', 'author')
+            .orderBy('articles.creatdAt', 'DESC')
+
+        await this.trySetAuthorFilter(author, queryBuilder);
+
+        await this.trySetFavoritedFilter(favorited, queryBuilder);
+
+        if (tag) queryBuilder.andWhere('articles.tagList LIKE :tag', { tag: `%${tag}%` })
+        if (offset) queryBuilder.offset(offset - 1);
+        if (limit) queryBuilder.limit(limit);
+
+        const articles = await queryBuilder.getMany();
+
+        const articlesCount = await queryBuilder.getCount();
+        const articlesWithFavorited = await this.articlesWithFavorites(currentUserId, articles);
+
+        return {
+            articles: articlesWithFavorited,
+            articlesCount
+        };
+    }
+
+    async getUserFeed(currentUserId: number, queryParameters: any): Promise<ArticlesResponse> {
+        const follows = await this.followRepository.find({ where: { followerId: currentUserId } })
+
+        if (follows.length === 0) return { articles: [], articlesCount: 0 };
+
+        const { limit, offset, tag, author, favorited } = queryParameters;
+
+        const followingIds = follows.map(f => f.followingId);
+
+        const queryBuilder = this.articleRepository
+            .createQueryBuilder('articles')
+            .leftJoinAndSelect('articles.author', 'author')
+            .andWhere('articles.author.id IN (:...followingIds)', { followingIds })
             .orderBy('articles.creatdAt', 'DESC')
 
         await this.trySetAuthorFilter(author, queryBuilder);

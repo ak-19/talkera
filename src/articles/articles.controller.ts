@@ -19,6 +19,12 @@ export class ArticlesController {
         return this.articlesService.getAll(currentUserId, queryParameters);
     }
 
+    @Get('feed')
+    @UseGuards(AuthGuard)
+    async feed(@UserDecorator('id') currentUserId: number, @Query() queryParameters: any): Promise<ArticlesResponse> {
+        return this.articlesService.getUserFeed(currentUserId, queryParameters);
+    }
+
     @Post()
     @UseGuards(AuthGuard)
     @UsePipes(new ValidationPipe())
