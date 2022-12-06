@@ -4,11 +4,10 @@ import {
   Get,
   Post,
   Put,
-  Req,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
+  UsePipes
 } from '@nestjs/common';
+import { BackendValidation } from 'src/shared/pipes/backendValidation.pipe';
 import { User as UserDecorator } from './decorator/user.decorator';
 import CreateUserDTO from './dto/createUser.dto';
 import LoginUserDTO from './dto/loginUser.dto';
@@ -25,7 +24,7 @@ export class UsersController {
 
   @Post()
   @UsePipes(
-    new ValidationPipe({
+    new BackendValidation({
       whitelist: true,
       forbidNonWhitelisted: true,
     }),
@@ -39,7 +38,7 @@ export class UsersController {
 
   @Post('login')
   @UsePipes(
-    new ValidationPipe({
+    new BackendValidation({
       whitelist: true,
       forbidNonWhitelisted: true,
     }),
@@ -57,9 +56,7 @@ export class UsersController {
 
   @Put()
   @UseGuards(AuthGuard)
-  @UsePipes(
-    new ValidationPipe(),
-  )
+  @UsePipes(new BackendValidation())
   async updateUser(
     @UserDecorator('id') currentUserId: number,
     @Body('user') updateUserDto: UpdateUserDTO

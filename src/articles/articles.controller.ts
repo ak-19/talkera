@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards, UsePipes } from '@nestjs/common';
+import { BackendValidation } from 'src/shared/pipes/backendValidation.pipe';
 
 import { User as UserDecorator } from 'src/users/decorator/user.decorator';
 import { User } from 'src/users/entity/user.entity';
@@ -27,7 +28,7 @@ export class ArticlesController {
 
     @Post()
     @UseGuards(AuthGuard)
-    @UsePipes(new ValidationPipe())
+    @UsePipes(new BackendValidation())
     async create(@UserDecorator() currentUser: User, @Body('article') createArticleDto: CreateArticleDTO): Promise<ArticleResponse> {
         const article = await this.articlesService.createArticle(currentUser, createArticleDto)
         return this.articlesService.buildArticleResponse(article);
