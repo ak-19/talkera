@@ -34,7 +34,7 @@ export class ArticlesController {
         return this.articlesService.buildArticleResponse(article);
     }
 
-    @Get('slug/:slug')
+    @Get(':slug')
     async getBySlug(@Param('slug') slug: string): Promise<ArticleResponse> {
         const article = await this.articlesService.getOneBySlug(slug);
         if (!article) throw new HttpException('Article with that slug not found', HttpStatus.NOT_FOUND);
