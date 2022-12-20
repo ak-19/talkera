@@ -21,6 +21,12 @@ export class ProfileService {
         };
     }
 
+    async getProfiles(): Promise<Profile[]> {
+        const users = await this.userRepository.find();
+        if (!users) throw new HttpException('The profiles not found', HttpStatus.NOT_FOUND);
+        return users.map(u => ({ ...u, following: false }))
+    }
+
     async getProfile(currentUserId: number, username: string): Promise<Profile> {
         const user = await this.userRepository.findOneBy({ username });
 
